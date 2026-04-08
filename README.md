@@ -1,6 +1,6 @@
 # MTSSH — Multi-Tabbed SSH Client (Go)
 
-Ein vollständiges, plattformübergreifendes SSH-Tool wie MTSSH, geschrieben in Go mit Fyne GUI.
+Ein vollständiges, plattformübergreifendes SSH-Tool wie MTPutty, geschrieben in Go mit Fyne GUI.
 
 ## Features
 
