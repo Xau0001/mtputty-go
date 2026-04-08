@@ -29,11 +29,11 @@ var khMu sync.Mutex
 
 func knownHostsPath() string {
 	home, _ := os.UserHomeDir()
-	return filepath.Join(home, ".mtputty", "known_hosts")
+	return filepath.Join(home, ".mtssh", "known_hosts")
 }
 
 // BuildHostKeyCallback returns an ssh.HostKeyCallback that:
-//  1. Accepts known hosts from ~/.mtputty/known_hosts
+//  1. Accepts known hosts from ~/.mtssh/known_hosts
 //  2. Calls prompt for unknown hosts and appends accepted keys
 //  3. Rejects changed host keys (MITM protection)
 func BuildHostKeyCallback(prompt HostKeyPrompt) ssh.HostKeyCallback {

@@ -1,9 +1,9 @@
 package ui
 
 import (
-	"mtputty/config"
-	"mtputty/core"
-	"mtputty/logger"
+	"mtssh/config"
+	"mtssh/core"
+	"mtssh/logger"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -14,7 +14,7 @@ import (
 
 // MainWindow builds and returns the main application window
 func MainWindow(app fyne.App, sessions []config.Session, onSave func([]config.Session) error) fyne.Window {
-	win := app.NewWindow("MTPuTTY — Multi-Tabbed SSH Client")
+	win := app.NewWindow("MTSSH — Multi-Tabbed SSH Client")
 	win.Resize(fyne.NewSize(1200, 750))
 
 	// ── Draggable tab container (replaces container.AppTabs) ─────────────────
@@ -41,7 +41,7 @@ func MainWindow(app fyne.App, sessions []config.Session, onSave func([]config.Se
 	// openSessionInWindow opens a session in a new independent window
 	var openSessionInWindow func(sess config.Session)
 	openSessionInWindow = func(sess config.Session) {
-		newWin := app.NewWindow("MTPuTTY — " + sess.Label)
+		newWin := app.NewWindow("MTSSH — " + sess.Label)
 		newWin.Resize(fyne.NewSize(900, 600))
 		newTabs := NewDraggableTabContainer()
 

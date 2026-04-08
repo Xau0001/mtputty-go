@@ -3,8 +3,8 @@ package core
 import (
 	"fmt"
 	"io"
-	"mtputty/config"
-	"mtputty/logger"
+	"mtssh/config"
+	"mtssh/logger"
 	"os"
 	"sync"
 	"time"
@@ -154,14 +154,14 @@ func (s *SSHSession) ConnectWithRetry(maxRetries int) {
 		} else {
 			logger.Error(s.cfg.Label, err.Error())
 			if s.OnOutput != nil {
-				s.OnOutput(fmt.Sprintf("[mtputty] Reconnect attempt %d/%d failed: %s\r\n", i, maxRetries, err))
+				s.OnOutput(fmt.Sprintf("[mtssh] Reconnect attempt %d/%d failed: %s\r\n", i, maxRetries, err))
 			}
 		}
 		time.Sleep(3 * time.Second)
 	}
 	logger.Error(s.cfg.Label, "all reconnect attempts failed")
 	if s.OnOutput != nil {
-		s.OnOutput("[mtputty] Could not reconnect. Please reconnect manually.\r\n")
+		s.OnOutput("[mtssh] Could not reconnect. Please reconnect manually.\r\n")
 	}
 }
 

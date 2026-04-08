@@ -23,7 +23,7 @@ type KnownHostEntry struct {
 
 func knownHostsFilePath() string {
 	home, _ := os.UserHomeDir()
-	return filepath.Join(home, ".mtputty", "known_hosts")
+	return filepath.Join(home, ".mtssh", "known_hosts")
 }
 
 // ShowKnownHostsEditor opens a window with a table of all known hosts

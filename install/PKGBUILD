@@ -1,14 +1,14 @@
 # Maintainer: Your Name <you@example.com>
-pkgname=mtputty
+pkgname=mtssh
 pkgver=1.0.0
 pkgrel=1
 pkgdesc="Multi-Tabbed SSH Client — Graphical SSH tool with SFTP, themes, AES-encrypted sessions"
 arch=('x86_64' 'aarch64')
-url="https://github.com/youruser/mtputty"
+url="https://github.com/youruser/mtssh"
 license=('MIT')
 depends=('glibc' 'mesa' 'libx11' 'libxrandr' 'libxcursor' 'libxinerama' 'libxi')
 makedepends=('go' 'gcc')
-source=("$pkgname-$pkgver.tar.gz::https://github.com/youruser/mtputty/archive/refs/tags/v$pkgver.tar.gz")
+source=("$pkgname-$pkgver.tar.gz::https://github.com/youruser/mtssh/archive/refs/tags/v$pkgver.tar.gz")
 sha256sums=('SKIP')  # Replace with actual checksum before publishing to AUR
 
 # ── For LOCAL build without release tarball: comment source/sha256sums above
@@ -24,20 +24,20 @@ build() {
     export GOFLAGS="-buildmode=pie -trimpath -ldflags=-linkmode=external"
     go build -v \
         -ldflags "-s -w -X main.Version=$pkgver" \
-        -o mtputty .
+        -o mtssh .
 }
 
 package() {
     cd "$srcdir/$pkgname-$pkgver"
-    install -Dm755 mtputty "$pkgdir/usr/bin/mtputty"
-    install -Dm644 install/mtputty.desktop "$pkgdir/usr/share/applications/mtputty.desktop"
+    install -Dm755 mtssh "$pkgdir/usr/bin/mtssh"
+    install -Dm644 install/mtssh.desktop "$pkgdir/usr/share/applications/mtssh.desktop"
 }
 
 # ── Local-only helper ──────────────────────────────────────────────────────────
 # To install directly from source (without AUR):
 #
-#   cd /path/to/mtputty-go
-#   go build -ldflags "-s -w" -o mtputty .
-#   sudo install -Dm755 mtputty /usr/bin/mtputty
-#   sudo install -Dm644 install/mtputty.desktop /usr/share/applications/mtputty.desktop
-#   echo "Done! Run: mtputty"
+#   cd /path/to/mtssh-go
+#   go build -ldflags "-s -w" -o mtssh .
+#   sudo install -Dm755 mtssh /usr/bin/mtssh
+#   sudo install -Dm644 install/mtssh.desktop /usr/share/applications/mtssh.desktop
+#   echo "Done! Run: mtssh"

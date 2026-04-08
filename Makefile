@@ -1,6 +1,6 @@
-BINARY   := mtputty
+BINARY   := mtssh
 VERSION  := 1.0.0
-PKG      := mtputty
+PKG      := mtssh
 LDFLAGS  := -ldflags "-X main.Version=$(VERSION) -s -w"
 
 # ── Build ──────────────────────────────────────────────────────────────────────
@@ -26,12 +26,12 @@ PREFIX ?= /usr/local
 
 install: build
 	install -Dm755 $(BINARY) $(PREFIX)/bin/$(BINARY)
-	install -Dm644 install/mtputty.desktop /usr/share/applications/mtputty.desktop
+	install -Dm644 install/mtssh.desktop /usr/share/applications/mtssh.desktop
 	@echo "Installed to $(PREFIX)/bin/$(BINARY)"
 
 uninstall:
 	rm -f $(PREFIX)/bin/$(BINARY)
-	rm -f /usr/share/applications/mtputty.desktop
+	rm -f /usr/share/applications/mtssh.desktop
 
 # ── Packaging ─────────────────────────────────────────────────────────────────
 

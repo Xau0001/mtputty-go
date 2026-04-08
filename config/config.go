@@ -40,7 +40,7 @@ func Init(passphrase string) {
 
 func configPath() string {
 	home, _ := os.UserHomeDir()
-	return filepath.Join(home, ".mtputty", "sessions.enc")
+	return filepath.Join(home, ".mtssh", "sessions.enc")
 }
 
 // Load reads and decrypts the session store from disk

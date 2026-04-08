@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
-# install-linux.sh — Installs MTPuTTY on Debian/Ubuntu, Fedora/RHEL, or Arch/CachyOS
+# install-linux.sh — Installs MTSSH on Debian/Ubuntu, Fedora/RHEL, or Arch/CachyOS
 # Usage: bash install/install-linux.sh [--uninstall]
 set -e
 
-BINARY="mtputty"
+BINARY="mtssh"
 INSTALL_DIR="/usr/local/bin"
 DESKTOP_DIR="/usr/share/applications"
 
 # ── Uninstall ─────────────────────────────────────────────────────────────────
 if [[ "$1" == "--uninstall" ]]; then
-    echo "==> Uninstalling MTPuTTY…"
+    echo "==> Uninstalling MTSSH…"
     sudo rm -f "${INSTALL_DIR}/${BINARY}"
-    sudo rm -f "${DESKTOP_DIR}/mtputty.desktop"
-    echo "==> Done. Config files remain at ~/.mtputty/"
+    sudo rm -f "${DESKTOP_DIR}/mtssh.desktop"
+    echo "==> Done. Config files remain at ~/.mtssh/"
     exit 0
 fi
 
-echo "==> MTPuTTY Linux Installer"
+echo "==> MTSSH Linux Installer"
 echo ""
 
 # ── Detect distro ─────────────────────────────────────────────────────────────
@@ -79,7 +79,7 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(dirname "$SCRIPT_DIR")"
 
-echo "--> Building MTPuTTY from ${REPO_DIR}…"
+echo "--> Building MTSSH from ${REPO_DIR}…"
 cd "$REPO_DIR"
 go mod tidy
 go build -ldflags "-s -w" -o "${BINARY}" .
@@ -91,7 +91,7 @@ echo "--> Installing binary to ${INSTALL_DIR}/${BINARY}…"
 sudo install -Dm755 "${BINARY}" "${INSTALL_DIR}/${BINARY}"
 
 echo "--> Installing .desktop file…"
-sudo install -Dm644 install/mtputty.desktop "${DESKTOP_DIR}/mtputty.desktop"
+sudo install -Dm644 install/mtssh.desktop "${DESKTOP_DIR}/mtssh.desktop"
 
 # Update desktop database if available
 if command -v update-desktop-database &>/dev/null; then
@@ -99,7 +99,7 @@ if command -v update-desktop-database &>/dev/null; then
 fi
 
 echo ""
-echo "==> MTPuTTY installed successfully!"
+echo "==> MTSSH installed successfully!"
 echo "    Binary   : ${INSTALL_DIR}/${BINARY}"
-echo "    Run      : mtputty"
+echo "    Run      : mtssh"
 echo "    Uninstall: bash install/install-linux.sh --uninstall"

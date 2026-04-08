@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# build-rpm.sh — Builds an .rpm package for MTPuTTY
+# build-rpm.sh — Builds an .rpm package for MTSSH
 # Usage: bash build-rpm.sh [VERSION]
 set -e
 
@@ -7,7 +7,7 @@ VERSION="${1:-1.0.0}"
 RELEASE="1"
 ARCH="$(uname -m)"
 
-echo "==> Building .rpm package: mtputty-${VERSION}-${RELEASE}.${ARCH}.rpm"
+echo "==> Building .rpm package: mtssh-${VERSION}-${RELEASE}.${ARCH}.rpm"
 
 # ── Dependency check ──────────────────────────────────────────────────────────
 for cmd in go rpmbuild; do
@@ -20,23 +20,23 @@ done
 
 # ── Build binary ──────────────────────────────────────────────────────────────
 echo "--> Compiling binary…"
-go build -ldflags "-s -w -X main.Version=${VERSION}" -o mtputty .
+go build -ldflags "-s -w -X main.Version=${VERSION}" -o mtssh .
 
 # ── Setup rpmbuild tree ───────────────────────────────────────────────────────
 RPMBUILD="${HOME}/rpmbuild"
 mkdir -p "${RPMBUILD}"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
 
-cp mtputty "${RPMBUILD}/SOURCES/mtputty"
-cp install/mtputty.desktop "${RPMBUILD}/SOURCES/mtputty.desktop"
+cp mtssh "${RPMBUILD}/SOURCES/mtssh"
+cp install/mtssh.desktop "${RPMBUILD}/SOURCES/mtssh.desktop"
 
 # ── Generate .spec ────────────────────────────────────────────────────────────
-cat > "${RPMBUILD}/SPECS/mtputty.spec" << EOF
-Name:           mtputty
+cat > "${RPMBUILD}/SPECS/mtssh.spec" << EOF
+Name:           mtssh
 Version:        ${VERSION}
 Release:        ${RELEASE}%{?dist}
 Summary:        Multi-Tabbed SSH Client
 License:        MIT
-URL:            https://github.com/youruser/mtputty
+URL:            https://github.com/youruser/mtssh
 
 Requires:       mesa-libGL libX11
 
@@ -47,12 +47,12 @@ AES-encrypted session storage, themes, and multi-window support.
 %install
 mkdir -p %{buildroot}/usr/local/bin
 mkdir -p %{buildroot}/usr/share/applications
-install -m 755 %{_sourcedir}/mtputty %{buildroot}/usr/local/bin/mtputty
-install -m 644 %{_sourcedir}/mtputty.desktop %{buildroot}/usr/share/applications/mtputty.desktop
+install -m 755 %{_sourcedir}/mtssh %{buildroot}/usr/local/bin/mtssh
+install -m 644 %{_sourcedir}/mtssh.desktop %{buildroot}/usr/share/applications/mtssh.desktop
 
 %files
-/usr/local/bin/mtputty
-/usr/share/applications/mtputty.desktop
+/usr/local/bin/mtssh
+/usr/share/applications/mtssh.desktop
 
 %changelog
 * $(date "+%a %b %d %Y") Build System <build@localhost> - ${VERSION}-${RELEASE}
@@ -60,9 +60,9 @@ install -m 644 %{_sourcedir}/mtputty.desktop %{buildroot}/usr/share/applications
 EOF
 
 # ── Build RPM ────────────────────────────────────────────────────────────────
-rpmbuild -bb "${RPMBUILD}/SPECS/mtputty.spec"
+rpmbuild -bb "${RPMBUILD}/SPECS/mtssh.spec"
 
-RPMFILE="$(find ${RPMBUILD}/RPMS -name "mtputty-*.rpm" | head -1)"
+RPMFILE="$(find ${RPMBUILD}/RPMS -name "mtssh-*.rpm" | head -1)"
 mkdir -p dist/rpm
 cp "$RPMFILE" dist/rpm/
 

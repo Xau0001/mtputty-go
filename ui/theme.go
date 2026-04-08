@@ -20,8 +20,8 @@ const (
 // AllThemes lists all available theme names
 var AllThemes = []ThemeName{ThemeDark, ThemeLight, ThemeSolarized, ThemeNord}
 
-// mtputtyTheme is a custom Fyne theme
-type mtputtyTheme struct {
+// mtsshTheme is a custom Fyne theme
+type mtsshTheme struct {
 	base       fyne.Theme
 	bg         color.Color
 	fg         color.Color
@@ -31,7 +31,7 @@ type mtputtyTheme struct {
 	disabledFg color.Color
 }
 
-func (t *mtputtyTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) color.Color {
+func (t *mtsshTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) color.Color {
 	switch name {
 	case theme.ColorNameBackground:
 		return t.bg
@@ -49,15 +49,15 @@ func (t *mtputtyTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant
 	return t.base.Color(name, variant)
 }
 
-func (t *mtputtyTheme) Font(style fyne.TextStyle) fyne.Resource {
+func (t *mtsshTheme) Font(style fyne.TextStyle) fyne.Resource {
 	return t.base.Font(style)
 }
 
-func (t *mtputtyTheme) Icon(name fyne.ThemeIconName) fyne.Resource {
+func (t *mtsshTheme) Icon(name fyne.ThemeIconName) fyne.Resource {
 	return t.base.Icon(name)
 }
 
-func (t *mtputtyTheme) Size(name fyne.ThemeSizeName) float32 {
+func (t *mtsshTheme) Size(name fyne.ThemeSizeName) float32 {
 	return t.base.Size(name)
 }
 
@@ -66,7 +66,7 @@ func NewTheme(name ThemeName) fyne.Theme {
 	base := theme.DefaultTheme()
 	switch name {
 	case ThemeLight:
-		return &mtputtyTheme{
+		return &mtsshTheme{
 			base:       base,
 			bg:         rgb(0xF5, 0xF5, 0xF5),
 			fg:         rgb(0x21, 0x21, 0x21),
@@ -77,7 +77,7 @@ func NewTheme(name ThemeName) fyne.Theme {
 		}
 	case ThemeSolarized:
 		// Solarized Dark palette
-		return &mtputtyTheme{
+		return &mtsshTheme{
 			base:       base,
 			bg:         rgb(0x00, 0x2B, 0x36),
 			fg:         rgb(0x83, 0x94, 0x96),
@@ -88,7 +88,7 @@ func NewTheme(name ThemeName) fyne.Theme {
 		}
 	case ThemeNord:
 		// Nord palette
-		return &mtputtyTheme{
+		return &mtsshTheme{
 			base:       base,
 			bg:         rgb(0x2E, 0x34, 0x40),
 			fg:         rgb(0xEC, 0xEF, 0xF4),
@@ -98,7 +98,7 @@ func NewTheme(name ThemeName) fyne.Theme {
 			disabledFg: rgb(0x61, 0x67, 0x78),
 		}
 	default: // ThemeDark
-		return &mtputtyTheme{
+		return &mtsshTheme{
 			base:       base,
 			bg:         rgb(0x1E, 0x1E, 0x1E),
 			fg:         rgb(0xD4, 0xD4, 0xD4),

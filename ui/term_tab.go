@@ -1,9 +1,9 @@
 package ui
 
 import (
-	"mtputty/config"
-	"mtputty/core"
-	"mtputty/logger"
+	"mtssh/config"
+	"mtssh/core"
+	"mtssh/logger"
 	"strings"
 
 	"fyne.io/fyne/v2"
@@ -49,7 +49,7 @@ func NewTermTab(sess config.Session, win fyne.Window) *TermTab {
 			return
 		}
 		if err := t.sshSession.SendCommand(cmd + "\n"); err != nil {
-			t.appendOutput("[mtputty] send error: " + err.Error() + "\r\n")
+			t.appendOutput("[mtssh] send error: " + err.Error() + "\r\n")
 			logger.Error(sess.Label, err.Error())
 		}
 		t.input.SetText("")
@@ -89,7 +89,7 @@ func (t *TermTab) Connect() {
 
 func (t *TermTab) connect() {
 	t.setStatus(false)
-	t.appendOutput("[mtputty] Connecting to " + t.Session.Host + "…\r\n")
+	t.appendOutput("[mtssh] Connecting to " + t.Session.Host + "…\r\n")
 
 	t.sshSession = core.NewSSHSession(
 		t.Session,
@@ -97,7 +97,7 @@ func (t *TermTab) connect() {
 		func(connected bool) {
 			t.setStatus(connected)
 			if !connected && t.Session.AutoConnect {
-				t.appendOutput("[mtputty] Auto-reconnect in 5s…\r\n")
+				t.appendOutput("[mtssh] Auto-reconnect in 5s…\r\n")
 				go t.sshSession.ConnectWithRetry(5)
 			}
 		},
@@ -148,7 +148,7 @@ func (t *TermTab) connect() {
 	}
 
 	if err := t.sshSession.Connect(); err != nil {
-		t.appendOutput("[mtputty] Connection failed: " + err.Error() + "\r\n")
+		t.appendOutput("[mtssh] Connection failed: " + err.Error() + "\r\n")
 		logger.Error(t.Session.Label, err.Error())
 		t.setStatus(false)
 	}

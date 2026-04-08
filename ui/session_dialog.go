@@ -3,7 +3,7 @@ package ui
 import (
 	"fmt"
 	"math/rand"
-	"mtputty/config"
+	"mtssh/config"
 	"strconv"
 
 	"fyne.io/fyne/v2"

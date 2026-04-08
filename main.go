@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"mtputty/config"
-	"mtputty/logger"
-	"mtputty/ui"
+	"mtssh/config"
+	"mtssh/logger"
+	"mtssh/ui"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -19,7 +19,7 @@ func main() {
 
 	a := app.New()
 
-	unlockWin := a.NewWindow("MTPuTTY — Unlock")
+	unlockWin := a.NewWindow("MTSSH — Unlock")
 	unlockWin.Resize(fyne.NewSize(480, 220))
 
 	passEntry := widget.NewPasswordEntry()
@@ -49,7 +49,7 @@ func main() {
 	passEntry.OnSubmitted = func(_ string) { unlock() }
 
 	unlockWin.SetContent(container.NewVBox(
-		widget.NewLabel("MTPuTTY — Multi-Tabbed SSH Client"),
+		widget.NewLabel("MTSSH — Multi-Tabbed SSH Client"),
 		widget.NewLabel("Enter your master passphrase to unlock the session store."),
 		widget.NewLabel("First launch: choose any passphrase — it encrypts your sessions."),
 		passEntry,

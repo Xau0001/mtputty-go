@@ -1,6 +1,6 @@
-# MTPuTTY — Multi-Tabbed SSH Client (Go)
+# MTSSH — Multi-Tabbed SSH Client (Go)
 
-Ein vollständiges, plattformübergreifendes SSH-Tool wie MTPuTTY, geschrieben in Go mit Fyne GUI.
+Ein vollständiges, plattformübergreifendes SSH-Tool wie MTSSH, geschrieben in Go mit Fyne GUI.
 
 ## Features
 
@@ -16,13 +16,13 @@ Ein vollständiges, plattformübergreifendes SSH-Tool wie MTPuTTY, geschrieben i
 | **Auto-Connect** | Sessions verbinden automatisch beim Start |
 | **Auto-Reconnect** | 5 Versuche mit 3s Pause nach Verbindungsabbruch |
 | **Themes** | Dark, Light, Solarized, Nord — zur Laufzeit umschaltbar |
-| **Logging** | Alle Events unter `~/.mtputty/logs/` |
+| **Logging** | Alle Events unter `~/.mtssh/logs/` |
 | **Gruppen** | Sessions nach Gruppe kategorisieren |
 
 ## Projektstruktur
 
 ```
-mtputty-go/
+mtssh-go/
 ├── main.go                    # Einstieg + Passphrase-Unlock-Dialog
 ├── go.mod
 ├── config/
@@ -48,7 +48,7 @@ mtputty-go/
 sudo apt install gcc libgl1-mesa-dev xorg-dev
 ```
 
-### Linux (Arch/CachyOS)
+### Linux (Arch)
 ```bash
 sudo pacman -S gcc mesa libxrandr libxcursor libxinerama libxi
 ```
@@ -62,24 +62,24 @@ https://go.dev/dl/ — mindestens Go 1.21
 ## Build & Start
 
 ```bash
-cd mtputty-go
+cd mtssh-go
 go mod tidy
 go run .                          # direkt starten
 
-go build -o mtputty .             # Linux Binary
-go build -o mtputty.exe .         # Windows Binary (nativ)
+go build -o mtssh .             # Linux Binary
+go build -o mtssh.exe .         # Windows Binary (nativ)
 
 # Windows cross-compile von Linux:
 GOOS=windows GOARCH=amd64 CGO_ENABLED=1 \
   CC=x86_64-w64-mingw32-gcc \
-  go build -o mtputty.exe .
+  go build -o mtssh.exe .
 ```
 
 ## Neue Features im Detail
 
 ### Known-Hosts-Validierung
 - Erster Verbindungsversuch zu einem Host → Fingerprint-Dialog erscheint
-- **Accept** → Key wird in `~/.mtputty/known_hosts` gespeichert
+- **Accept** → Key wird in `~/.mtssh/known_hosts` gespeichert
 - **Reject** → Verbindung wird abgebrochen
 - Geänderter Host-Key → Fehlermeldung (MITM-Schutz, keine stille Übernahme)
 
@@ -102,6 +102,6 @@ GOOS=windows GOARCH=amd64 CGO_ENABLED=1 \
 
 | Datei | Pfad |
 |---|---|
-| Sessions (verschlüsselt) | `~/.mtputty/sessions.enc` |
-| Known Hosts | `~/.mtputty/known_hosts` |
-| Logs | `~/.mtputty/logs/mtputty_YYYY-MM-DD.log` |
+| Sessions (verschlüsselt) | `~/.mtssh/sessions.enc` |
+| Known Hosts | `~/.mtssh/known_hosts` |
+| Logs | `~/.mtssh/logs/mtssh_YYYY-MM-DD.log` |

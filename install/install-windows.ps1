@@ -1,15 +1,15 @@
-# MTPuTTY Windows Installer
+# MTSSH Windows Installer
 # Run as Administrator in PowerShell:
 #   Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
 #   .\install\install-windows.ps1
 
 param(
-    [string]$InstallDir = "$env:LOCALAPPDATA\MTPuTTY",
+    [string]$InstallDir = "$env:LOCALAPPDATA\MTSSH",
     [switch]$Uninstall
 )
 
-$Binary   = "mtputty.exe"
-$AppName  = "MTPuTTY"
+$Binary   = "mtssh.exe"
+$AppName  = "MTSSH"
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 
 # ── Uninstall ─────────────────────────────────────────────────────────────────
@@ -103,5 +103,5 @@ Pop-Location
 Write-Host ""
 Write-Host "==> $AppName installed successfully!" -ForegroundColor Green
 Write-Host "    Location : $InstallDir\$Binary"
-Write-Host "    Run      : mtputty   (after opening a new terminal)"
+Write-Host "    Run      : mtssh   (after opening a new terminal)"
 Write-Host "    Uninstall: .\install\install-windows.ps1 -Uninstall"

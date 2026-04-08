@@ -3,7 +3,7 @@ package ui
 import (
 	"encoding/json"
 	"fmt"
-	"mtputty/config"
+	"mtssh/config"
 	"os"
 
 	"fyne.io/fyne/v2"

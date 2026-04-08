@@ -51,7 +51,7 @@ jobs:
         run: |
           go build \
             -ldflags "-s -w -X main.Version=${{ steps.version.outputs.VERSION }}" \
-            -o mtputty \
+            -o mtssh \
             .
 
       # ── .deb package ──────────────────────────────────────────────────────
@@ -59,26 +59,26 @@ jobs:
         run: |
           VERSION="${{ steps.version.outputs.VERSION }}"
           ARCH="$(dpkg --print-architecture)"
-          PKGNAME="mtputty_${VERSION}_${ARCH}"
+          PKGNAME="mtssh_${VERSION}_${ARCH}"
           BUILD="dist/deb/${PKGNAME}"
 
           mkdir -p "${BUILD}/DEBIAN"
           mkdir -p "${BUILD}/usr/local/bin"
           mkdir -p "${BUILD}/usr/share/applications"
-          mkdir -p "${BUILD}/usr/share/doc/mtputty"
+          mkdir -p "${BUILD}/usr/share/doc/mtssh"
 
-          cp mtputty "${BUILD}/usr/local/bin/mtputty"
-          chmod 755 "${BUILD}/usr/local/bin/mtputty"
-          cp install/mtputty.desktop "${BUILD}/usr/share/applications/mtputty.desktop"
+          cp mtssh "${BUILD}/usr/local/bin/mtssh"
+          chmod 755 "${BUILD}/usr/local/bin/mtssh"
+          cp install/mtssh.desktop "${BUILD}/usr/share/applications/mtssh.desktop"
 
           cat > "${BUILD}/DEBIAN/control" << EOF
-          Package: mtputty
+          Package: mtssh
           Version: ${VERSION}
           Section: net
           Priority: optional
           Architecture: ${ARCH}
           Depends: libgl1, libx11-6
-          Maintainer: MTPuTTY Project
+          Maintainer: MTSSH Project
           Description: Multi-Tabbed SSH Client
            Graphical SSH client with tabs, SFTP, AES-encrypted sessions, themes.
           EOF
@@ -89,25 +89,25 @@ jobs:
 
       - name: Rename Linux binary with arch suffix
         run: |
-          cp mtputty mtputty-linux-amd64
+          cp mtssh mtssh-linux-amd64
 
       - name: Upload Linux binary + .deb to release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            mtputty-linux-amd64
+            mtssh-linux-amd64
             ${{ env.DEB_FILE }}
           body: |
-            ## MTPuTTY ${{ github.ref_name }}
+            ## MTSSH ${{ github.ref_name }}
 
             ### Downloads
 
             | File | Platform | Install |
             |---|---|---|
-            | `mtputty-linux-amd64` | Linux (amd64) | `chmod +x mtputty-linux-amd64 && ./mtputty-linux-amd64` |
-            | `mtputty_*_amd64.deb` | Debian / Ubuntu | `sudo dpkg -i mtputty_*_amd64.deb` |
-            | `mtputty-*-x86_64.rpm` | Fedora / RHEL | `sudo rpm -i mtputty-*.rpm` |
-            | `mtputty-windows-amd64.exe` | Windows 10/11 | Double-click or run from terminal |
+            | `mtssh-linux-amd64` | Linux (amd64) | `chmod +x mtssh-linux-amd64 && ./mtssh-linux-amd64` |
+            | `mtssh_*_amd64.deb` | Debian / Ubuntu | `sudo dpkg -i mtssh_*_amd64.deb` |
+            | `mtssh-*-x86_64.rpm` | Fedora / RHEL | `sudo rpm -i mtssh-*.rpm` |
+            | `mtssh-windows-amd64.exe` | Windows 10/11 | Double-click or run from terminal |
 
             ### First run
             On first launch you will be asked to set a master passphrase.
@@ -151,13 +151,13 @@ jobs:
         run: |
           go build \
             -ldflags "-s -w -H windowsgui -X main.Version=${{ steps.version.outputs.VERSION }}" \
-            -o mtputty-windows-amd64.exe \
+            -o mtssh-windows-amd64.exe \
             .
 
       - name: Upload Windows EXE to release
         uses: softprops/action-gh-release@v2
         with:
-          files: mtputty-windows-amd64.exe
+          files: mtssh-windows-amd64.exe
 
   # ── Job 3: RPM package ───────────────────────────────────────────────────────
   release-rpm:
@@ -194,7 +194,7 @@ jobs:
         run: |
           go build \
             -ldflags "-s -w -X main.Version=${{ steps.version.outputs.VERSION }}" \
-            -o mtputty \
+            -o mtssh \
             .
 
       - name: Build .rpm
@@ -204,11 +204,11 @@ jobs:
           RPMBUILD="${HOME}/rpmbuild"
           mkdir -p "${RPMBUILD}"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
 
-          cp mtputty "${RPMBUILD}/SOURCES/mtputty"
-          cp install/mtputty.desktop "${RPMBUILD}/SOURCES/mtputty.desktop"
+          cp mtssh "${RPMBUILD}/SOURCES/mtssh"
+          cp install/mtssh.desktop "${RPMBUILD}/SOURCES/mtssh.desktop"
 
-          cat > "${RPMBUILD}/SPECS/mtputty.spec" << EOF
-          Name:           mtputty
+          cat > "${RPMBUILD}/SPECS/mtssh.spec" << EOF
+          Name:           mtssh
           Version:        ${VERSION}
           Release:        1
           Summary:        Multi-Tabbed SSH Client
@@ -222,22 +222,22 @@ jobs:
           %install
           mkdir -p %{buildroot}/usr/local/bin
           mkdir -p %{buildroot}/usr/share/applications
-          install -m 755 %{_sourcedir}/mtputty %{buildroot}/usr/local/bin/mtputty
-          install -m 644 %{_sourcedir}/mtputty.desktop %{buildroot}/usr/share/applications/mtputty.desktop
+          install -m 755 %{_sourcedir}/mtssh %{buildroot}/usr/local/bin/mtssh
+          install -m 644 %{_sourcedir}/mtssh.desktop %{buildroot}/usr/share/applications/mtssh.desktop
 
           %files
-          /usr/local/bin/mtputty
-          /usr/share/applications/mtputty.desktop
+          /usr/local/bin/mtssh
+          /usr/share/applications/mtssh.desktop
 
           %changelog
           * $(date "+%a %b %d %Y") CI <ci@localhost> - ${VERSION}-1
           - Automated release build
           EOF
 
-          rpmbuild -bb "${RPMBUILD}/SPECS/mtputty.spec"
+          rpmbuild -bb "${RPMBUILD}/SPECS/mtssh.spec"
           RPM_FILE=$(find "${RPMBUILD}/RPMS" -name "*.rpm" | head -1)
-          cp "$RPM_FILE" "mtputty-${VERSION}-x86_64.rpm"
-          echo "RPM_FILE=mtputty-${VERSION}-x86_64.rpm" >> $GITHUB_ENV
+          cp "$RPM_FILE" "mtssh-${VERSION}-x86_64.rpm"
+          echo "RPM_FILE=mtssh-${VERSION}-x86_64.rpm" >> $GITHUB_ENV
 
       - name: Upload .rpm to release
         uses: softprops/action-gh-release@v2

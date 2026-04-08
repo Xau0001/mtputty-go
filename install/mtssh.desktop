@@ -1,9 +1,9 @@
 [Desktop Entry]
-Name=MTPuTTY
+Name=MTSSH
 Comment=Multi-Tabbed SSH Client
-Exec=mtputty
+Exec=mtssh
 Icon=utilities-terminal
 Terminal=false
 Type=Application
 Categories=Network;RemoteAccess;System;
-Keywords=ssh;terminal;remote;putty;
+Keywords=ssh;terminal;remote;

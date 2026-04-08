@@ -2,7 +2,7 @@ package ui
 
 import (
 	"fmt"
-	"mtputty/core"
+	"mtssh/core"
 	"path"
 	"sort"
 

@@ -11,13 +11,13 @@ import (
 var fileLogger *log.Logger
 var logFile *os.File
 
-// Init sets up file-based logging under ~/.mtputty/logs/
+// Init sets up file-based logging under ~/.mtssh/logs/
 func Init() error {
 	home, _ := os.UserHomeDir()
-	dir := filepath.Join(home, ".mtputty", "logs")
+	dir := filepath.Join(home, ".mtssh", "logs")
 	os.MkdirAll(dir, 0700)
 
-	name := fmt.Sprintf("mtputty_%s.log", time.Now().Format("2006-01-02"))
+	name := fmt.Sprintf("mtssh_%s.log", time.Now().Format("2006-01-02"))
 	path := filepath.Join(dir, name)
 
 	f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)

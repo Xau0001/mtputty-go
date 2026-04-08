@@ -1,4 +1,4 @@
-module mtputty
+module mtssh
 
 go 1.21
 
