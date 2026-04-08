@@ -82,6 +82,7 @@ func MainWindow(app fyne.App, sessions []config.Session, onSave func([]config.Se
 	}
 
 	// ── Session list ─────────────────────────────────────────────────────────
+	selectedSession := -1
 	sessionList := widget.NewList(
 		func() int { return len(sessions) },
 		func() fyne.CanvasObject {
@@ -102,6 +103,7 @@ func MainWindow(app fyne.App, sessions []config.Session, onSave func([]config.Se
 		},
 	)
 	sessionList.OnSelected = func(id widget.ListItemID) {
+		selectedSession = int(id)
 		openSession(sessions[id])
 		sessionList.Unselect(id)
 	}
@@ -121,7 +123,7 @@ func MainWindow(app fyne.App, sessions []config.Session, onSave func([]config.Se
 		})
 	})
 	editBtn := widget.NewButtonWithIcon("Edit", theme.DocumentCreateIcon(), func() {
-		sel := sessionList.GetSelectedIndex()
+		sel := selectedSession
 		if sel < 0 {
 			dialog.ShowInformation("Edit", "Select a session first.", win)
 			return
@@ -133,7 +135,7 @@ func MainWindow(app fyne.App, sessions []config.Session, onSave func([]config.Se
 		})
 	})
 	deleteBtn := widget.NewButtonWithIcon("Delete", theme.DeleteIcon(), func() {
-		sel := sessionList.GetSelectedIndex()
+		sel := selectedSession
 		if sel < 0 {
 			return
 		}
@@ -146,7 +148,7 @@ func MainWindow(app fyne.App, sessions []config.Session, onSave func([]config.Se
 		}, win)
 	})
 	newWinBtn := widget.NewButtonWithIcon("New Window", theme.ViewFullScreenIcon(), func() {
-		sel := sessionList.GetSelectedIndex()
+		sel := selectedSession
 		if sel < 0 {
 			dialog.ShowInformation("New Window", "Select a session first.", win)
 			return

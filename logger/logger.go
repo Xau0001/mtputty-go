@@ -13,9 +13,14 @@ var logFile *os.File
 
 // Init sets up file-based logging under ~/.mtssh/logs/
 func Init() error {
-	home, _ := os.UserHomeDir()
+	home, err := os.UserHomeDir()
+	if err != nil {
+		home = "."
+	}
 	dir := filepath.Join(home, ".mtssh", "logs")
-	os.MkdirAll(dir, 0700)
+	if err := os.MkdirAll(dir, 0700); err != nil {
+		return err
+	}
 
 	name := fmt.Sprintf("mtssh_%s.log", time.Now().Format("2006-01-02"))
 	path := filepath.Join(dir, name)

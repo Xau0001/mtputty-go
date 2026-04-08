@@ -28,7 +28,10 @@ type HostKeyPrompt func(host, keyType, fingerprint string) HostKeyDecision
 var khMu sync.Mutex
 
 func knownHostsPath() string {
-	home, _ := os.UserHomeDir()
+	home, err := os.UserHomeDir()
+	if err != nil {
+		home = "."
+	}
 	return filepath.Join(home, ".mtssh", "known_hosts")
 }
 

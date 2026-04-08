@@ -5,6 +5,7 @@ import (
 	"mtssh/core"
 	"path"
 	"sort"
+	"sync"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -16,14 +17,15 @@ import (
 
 // SFTPTab shows a file manager for a remote SSH server
 type SFTPTab struct {
-	sftp      *core.SFTPClient
-	win       fyne.Window
+	sftp       *core.SFTPClient
+	win        fyne.Window
 	currentDir string
-	entries   []core.FileEntry
-	list      *widget.List
-	pathLabel *widget.Label
-	statusLbl *widget.Label
-	Container fyne.CanvasObject
+	entriesMu  sync.RWMutex
+	entries    []core.FileEntry
+	list       *widget.List
+	pathLabel  *widget.Label
+	statusLbl  *widget.Label
+	Container  fyne.CanvasObject
 }
 
 // NewSFTPTab creates an SFTP file manager connected via sshClient
@@ -54,7 +56,11 @@ func (t *SFTPTab) buildUI() {
 
 	// File list
 	t.list = widget.NewList(
-		func() int { return len(t.entries) },
+		func() int {
+			t.entriesMu.RLock()
+			defer t.entriesMu.RUnlock()
+			return len(t.entries)
+		},
 		func() fyne.CanvasObject {
 			return container.NewHBox(
 				widget.NewIcon(theme.FileIcon()),
@@ -63,12 +69,19 @@ func (t *SFTPTab) buildUI() {
 			)
 		},
 		func(id widget.ListItemID, obj fyne.CanvasObject) {
+			t.entriesMu.RLock()
+			if int(id) >= len(t.entries) {
+				t.entriesMu.RUnlock()
+				return
+			}
+			e := t.entries[id]
+			t.entriesMu.RUnlock()
+
 			row := obj.(*fyne.Container)
 			icon := row.Objects[0].(*widget.Icon)
 			name := row.Objects[1].(*widget.Label)
 			size := row.Objects[2].(*widget.Label)
 
-			e := t.entries[id]
 			if e.IsDir {
 				icon.SetResource(theme.FolderIcon())
 				size.SetText("<DIR>")
@@ -82,7 +95,14 @@ func (t *SFTPTab) buildUI() {
 
 	// Double-click: navigate into dir or show file options
 	t.list.OnSelected = func(id widget.ListItemID) {
+		t.entriesMu.RLock()
+		if int(id) >= len(t.entries) {
+			t.entriesMu.RUnlock()
+			t.list.Unselect(id)
+			return
+		}
 		e := t.entries[id]
+		t.entriesMu.RUnlock()
 		if e.IsDir {
 			t.navigate(e.Name)
 		} else {
@@ -142,7 +162,9 @@ func (t *SFTPTab) refresh() {
 		}
 		return entries[i].Name < entries[j].Name
 	})
+	t.entriesMu.Lock()
 	t.entries = entries
+	t.entriesMu.Unlock()
 	t.list.Refresh()
 	t.setStatus(fmt.Sprintf("%d items", len(entries)))
 }
@@ -269,6 +291,9 @@ func humanSize(b int64) string {
 	for n := b / unit; n >= unit; n /= unit {
 		div *= unit
 		exp++
+		if exp >= 5 {
+			break
+		}
 	}
 	return fmt.Sprintf("%.1f %cB", float64(b)/float64(div), "KMGTPE"[exp])
 }

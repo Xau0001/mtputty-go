@@ -39,7 +39,10 @@ func Init(passphrase string) {
 }
 
 func configPath() string {
-	home, _ := os.UserHomeDir()
+	home, err := os.UserHomeDir()
+	if err != nil {
+		home = "."
+	}
 	return filepath.Join(home, ".mtssh", "sessions.enc")
 }
 
@@ -77,7 +80,9 @@ func Save(sessions []Session) error {
 	if err != nil {
 		return err
 	}
-	os.MkdirAll(filepath.Dir(configPath()), 0700)
+	if err := os.MkdirAll(filepath.Dir(configPath()), 0700); err != nil {
+		return err
+	}
 	return os.WriteFile(configPath(), enc, 0600)
 }
 

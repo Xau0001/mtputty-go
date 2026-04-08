@@ -22,7 +22,10 @@ type KnownHostEntry struct {
 }
 
 func knownHostsFilePath() string {
-	home, _ := os.UserHomeDir()
+	home, err := os.UserHomeDir()
+	if err != nil {
+		home = "."
+	}
 	return filepath.Join(home, ".mtssh", "known_hosts")
 }
 
@@ -40,6 +43,7 @@ func ShowKnownHostsEditor(app fyne.App) {
 	}
 	loadEntries()
 
+	selectedKH := -1
 	list := widget.NewList(
 		func() int { return len(entries) },
 		func() fyne.CanvasObject {
@@ -55,9 +59,11 @@ func ShowKnownHostsEditor(app fyne.App) {
 			row.Objects[2].(*widget.Label).SetText(entries[id].KeyType)
 		},
 	)
+	list.OnSelected = func(id widget.ListItemID) { selectedKH = int(id) }
+	list.OnUnselected = func(id widget.ListItemID) { selectedKH = -1 }
 
 	deleteBtn := widget.NewButtonWithIcon("Delete Selected", theme.DeleteIcon(), func() {
-		sel := list.GetSelectedIndex()
+		sel := selectedKH
 		if sel < 0 {
 			dialog.ShowInformation("Delete", "Please select an entry first.", win)
 			return
@@ -84,7 +90,10 @@ func ShowKnownHostsEditor(app fyne.App) {
 			if !ok {
 				return
 			}
-			os.WriteFile(knownHostsFilePath(), []byte{}, 0600)
+			if err := os.WriteFile(knownHostsFilePath(), []byte{}, 0600); err != nil {
+				dialog.ShowError(err, win)
+				return
+			}
 			loadEntries()
 			list.Refresh()
 		}, win)
@@ -156,5 +165,5 @@ func readAllLines(path string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	return strings.Split(string(data), "\n"), nil
+	return strings.Split(strings.TrimRight(string(data), "\n"), "\n"), nil
 }

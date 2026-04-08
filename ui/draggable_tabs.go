@@ -230,9 +230,9 @@ func (b *dragTabButton) CreateRenderer() fyne.WidgetRenderer {
 	// Background: brighter for the active tab
 	bg := canvas.NewRectangle(color.Transparent)
 	if b.active {
-		bg.FillColor = theme.Color(theme.ColorNameBackground)
+		bg.FillColor = theme.BackgroundColor()
 	} else {
-		bg.FillColor = theme.Color(theme.ColorNameInputBackground)
+		bg.FillColor = theme.InputBackgroundColor()
 	}
 
 	// "⠿" Braille character as a subtle drag-handle hint on the right

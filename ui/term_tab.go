@@ -5,6 +5,7 @@ import (
 	"mtssh/core"
 	"mtssh/logger"
 	"strings"
+	"sync"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -21,6 +22,7 @@ type TermTab struct {
 	input      *widget.Entry
 	statusLbl  *widget.Label
 	buf        strings.Builder
+	bufMu      sync.Mutex
 	Container  fyne.CanvasObject
 	win        fyne.Window
 
@@ -91,59 +93,57 @@ func (t *TermTab) connect() {
 	t.setStatus(false)
 	t.appendOutput("[mtssh] Connecting to " + t.Session.Host + "…\r\n")
 
-	t.sshSession = core.NewSSHSession(
+	var sess *core.SSHSession
+	sess = core.NewSSHSession(
 		t.Session,
 		func(line string) { t.appendOutput(line) },
 		func(connected bool) {
 			t.setStatus(connected)
 			if !connected && t.Session.AutoConnect {
 				t.appendOutput("[mtssh] Auto-reconnect in 5s…\r\n")
-				go t.sshSession.ConnectWithRetry(5)
+				go sess.ConnectWithRetry(5)
 			}
 		},
 	)
+	t.sshSession = sess
 
-	// Known-hosts: block goroutine until user decides in main thread
+	// Known-hosts: block goroutine until user decides
 	t.sshSession.HostKeyPrompt = func(host, keyType, fp string) core.HostKeyDecision {
 		result := make(chan core.HostKeyDecision, 1)
-		fyne.CurrentApp().Driver().RunOnMain(func() {
-			msg := "Unknown host key for:\n" + host +
-				"\n\nType:        " + keyType +
-				"\nFingerprint: " + fp +
-				"\n\nDo you want to trust and save this host key?"
-			dialog.ShowConfirm("Unknown Host Key", msg, func(ok bool) {
-				if ok {
-					result <- core.HostKeyAccept
-				} else {
-					result <- core.HostKeyReject
-				}
-			}, t.win)
-		})
+		msg := "Unknown host key for:\n" + host +
+			"\n\nType:        " + keyType +
+			"\nFingerprint: " + fp +
+			"\n\nDo you want to trust and save this host key?"
+		dialog.ShowConfirm("Unknown Host Key", msg, func(ok bool) {
+			if ok {
+				result <- core.HostKeyAccept
+			} else {
+				result <- core.HostKeyReject
+			}
+		}, t.win)
 		return <-result
 	}
 
 	// Passphrase-protected SSH key: block until user enters passphrase
 	t.sshSession.KeyPassphrasePrompt = func(keyPath string) string {
 		result := make(chan string, 1)
-		fyne.CurrentApp().Driver().RunOnMain(func() {
-			entry := widget.NewPasswordEntry()
-			entry.SetPlaceHolder("Key passphrase")
-			dialog.ShowCustomConfirm(
-				"SSH Key Passphrase",
-				"Unlock", "Cancel",
-				container.NewVBox(
-					widget.NewLabel("Key: "+keyPath),
-					widget.NewLabel("This key is passphrase-protected. Enter the passphrase to unlock it."),
-					entry,
-				),
-				func(ok bool) {
-					if ok {
-						result <- entry.Text
-					} else {
-						result <- ""
-					}
-				}, t.win)
-		})
+		entry := widget.NewPasswordEntry()
+		entry.SetPlaceHolder("Key passphrase")
+		dialog.ShowCustomConfirm(
+			"SSH Key Passphrase",
+			"Unlock", "Cancel",
+			container.NewVBox(
+				widget.NewLabel("Key: "+keyPath),
+				widget.NewLabel("This key is passphrase-protected. Enter the passphrase to unlock it."),
+				entry,
+			),
+			func(ok bool) {
+				if ok {
+					result <- entry.Text
+				} else {
+					result <- ""
+				}
+			}, t.win)
 		return <-result
 	}
 
@@ -155,6 +155,7 @@ func (t *TermTab) connect() {
 }
 
 func (t *TermTab) appendOutput(s string) {
+	t.bufMu.Lock()
 	t.buf.WriteString(s)
 	text := t.buf.String()
 	// Cap buffer at 50 KB to prevent unbounded memory growth
@@ -165,6 +166,7 @@ func (t *TermTab) appendOutput(s string) {
 	}
 	display := strings.ReplaceAll(text, "\r\n", "\n")
 	display = strings.ReplaceAll(display, "\r", "\n")
+	t.bufMu.Unlock()
 	t.output.SetText(display)
 }
 

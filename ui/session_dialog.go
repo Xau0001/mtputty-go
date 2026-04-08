@@ -1,8 +1,9 @@
 package ui
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
-	"math/rand"
 	"mtssh/config"
 	"strconv"
 
@@ -121,5 +122,9 @@ func ShowSessionDialog(win fyne.Window, existing *config.Session, onSave func(co
 }
 
 func randomID() string {
-	return fmt.Sprintf("%08x", rand.Uint32())
+	b := make([]byte, 4)
+	if _, err := rand.Read(b); err != nil {
+		panic("crypto/rand unavailable: " + err.Error())
+	}
+	return hex.EncodeToString(b)
 }
