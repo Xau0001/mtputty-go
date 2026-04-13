@@ -28,6 +28,7 @@ mkdir -p "${RPMBUILD}"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
 
 cp mtssh "${RPMBUILD}/SOURCES/mtssh"
 cp install/mtssh.desktop "${RPMBUILD}/SOURCES/mtssh.desktop"
+cp icon.png "${RPMBUILD}/SOURCES/mtssh.png"
 
 # ── Generate .spec ────────────────────────────────────────────────────────────
 cat > "${RPMBUILD}/SPECS/mtssh.spec" << EOF
@@ -47,12 +48,15 @@ AES-encrypted session storage, themes, and multi-window support.
 %install
 mkdir -p %{buildroot}/usr/local/bin
 mkdir -p %{buildroot}/usr/share/applications
+mkdir -p %{buildroot}/usr/share/icons/hicolor/512x512/apps
 install -m 755 %{_sourcedir}/mtssh %{buildroot}/usr/local/bin/mtssh
 install -m 644 %{_sourcedir}/mtssh.desktop %{buildroot}/usr/share/applications/mtssh.desktop
+install -m 644 %{_sourcedir}/mtssh.png %{buildroot}/usr/share/icons/hicolor/512x512/apps/mtssh.png
 
 %files
 /usr/local/bin/mtssh
 /usr/share/applications/mtssh.desktop
+/usr/share/icons/hicolor/512x512/apps/mtssh.png
 
 %changelog
 * $(date "+%a %b %d %Y") Build System <build@localhost> - ${VERSION}-${RELEASE}

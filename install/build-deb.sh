@@ -27,6 +27,7 @@ rm -rf "$BUILD"
 mkdir -p "$BUILD/DEBIAN"
 mkdir -p "$BUILD/usr/local/bin"
 mkdir -p "$BUILD/usr/share/applications"
+mkdir -p "$BUILD/usr/share/icons/hicolor/512x512/apps"
 mkdir -p "$BUILD/usr/share/doc/mtssh"
 
 # ── Copy files ────────────────────────────────────────────────────────────────
@@ -34,6 +35,7 @@ cp mtssh "$BUILD/usr/local/bin/mtssh"
 chmod 755 "$BUILD/usr/local/bin/mtssh"
 
 cp install/mtssh.desktop "$BUILD/usr/share/applications/mtssh.desktop"
+cp icon.png "$BUILD/usr/share/icons/hicolor/512x512/apps/mtssh.png"
 
 cat > "$BUILD/usr/share/doc/mtssh/copyright" << 'EOF'
 MTSSH — Multi-Tabbed SSH Client

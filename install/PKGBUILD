@@ -24,6 +24,7 @@ package() {
     cd "$srcdir/$pkgname"
     install -Dm755 mtssh "$pkgdir/usr/bin/mtssh"
     install -Dm644 install/mtssh.desktop "$pkgdir/usr/share/applications/mtssh.desktop"
+    install -Dm644 icon.png "$pkgdir/usr/share/icons/hicolor/512x512/apps/mtssh.png"
 }
 
 # ── Local install without AUR ─────────────────────────────────────────────────
