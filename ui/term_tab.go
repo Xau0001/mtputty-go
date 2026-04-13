@@ -26,6 +26,13 @@ type TermTab struct {
 	Container  fyne.CanvasObject
 	win        fyne.Window
 
+	// inputIntercept, when non-nil, captures the next submitted line instead
+	// of forwarding it to the SSH session. Used during interactive auth.
+	inputIntercept chan string
+	interceptMu    sync.Mutex
+
+	connectMu sync.Mutex // guards concurrent connect() calls
+
 	// OnOpenSFTP is called when the user clicks "SFTP"
 	OnOpenSFTP func(sess config.Session, sshSess *core.SSHSession)
 	// OnOpenInWindow detaches this session into its own window
@@ -47,6 +54,14 @@ func NewTermTab(sess config.Session, win fyne.Window) *TermTab {
 	t.input = widget.NewEntry()
 	t.input.SetPlaceHolder("Type command and press Enter…")
 	t.input.OnSubmitted = func(cmd string) {
+		t.interceptMu.Lock()
+		ch := t.inputIntercept
+		t.interceptMu.Unlock()
+		if ch != nil {
+			t.input.SetText("")
+			ch <- cmd
+			return
+		}
 		if t.sshSession == nil {
 			return
 		}
@@ -90,6 +105,9 @@ func (t *TermTab) Connect() {
 }
 
 func (t *TermTab) connect() {
+	t.connectMu.Lock()
+	defer t.connectMu.Unlock()
+
 	// Stop any previous session before creating a new one
 	if t.sshSession != nil {
 		t.sshSession.Disconnect()
@@ -126,6 +144,21 @@ func (t *TermTab) connect() {
 			}
 		}, t.win)
 		return <-result
+	}
+
+	// No password/key configured: read from the terminal input field
+	t.sshSession.PasswordPrompt = func() string {
+		t.appendOutput("Password: ")
+		ch := make(chan string, 1)
+		t.interceptMu.Lock()
+		t.inputIntercept = ch
+		t.interceptMu.Unlock()
+		defer func() {
+			t.interceptMu.Lock()
+			t.inputIntercept = nil
+			t.interceptMu.Unlock()
+		}()
+		return <-ch
 	}
 
 	// Passphrase-protected SSH key: block until user enters passphrase

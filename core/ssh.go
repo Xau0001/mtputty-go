@@ -19,6 +19,10 @@ type OutputCallback func(line string)
 // Should block until the user provides input. Return "" to abort.
 type KeyPassphrasePrompt func(keyPath string) string
 
+// PasswordPrompt is called when no password or key is configured.
+// Should block until the user provides input. Return "" to abort.
+type PasswordPrompt func() string
+
 // SSHSession wraps a live SSH connection + shell
 type SSHSession struct {
 	cfg                 config.Session
@@ -32,6 +36,7 @@ type SSHSession struct {
 	OnStatus            func(connected bool)
 	HostKeyPrompt       HostKeyPrompt
 	KeyPassphrasePrompt KeyPassphrasePrompt
+	PasswordPrompt      PasswordPrompt
 }
 
 // NewSSHSession creates a new session wrapper (does not connect yet)
@@ -54,11 +59,11 @@ func (s *SSHSession) Client() *ssh.Client {
 // Connect opens the SSH connection and starts the shell
 func (s *SSHSession) Connect() error {
 	s.mu.Lock()
-	defer s.mu.Unlock()
-
 	if s.running {
+		s.mu.Unlock()
 		return fmt.Errorf("already connected")
 	}
+	s.mu.Unlock()
 
 	auth, err := s.buildAuth()
 	if err != nil {
@@ -78,18 +83,18 @@ func (s *SSHSession) Connect() error {
 	}
 
 	addr := fmt.Sprintf("%s:%d", s.cfg.Host, s.cfg.Port)
+	// Do not hold s.mu during Dial — it may block for the full Timeout and
+	// the UI needs IsRunning()/Client()/Disconnect() to stay responsive.
 	client, err := ssh.Dial("tcp", addr, sshCfg)
 	if err != nil {
 		return fmt.Errorf("dial %s: %w", addr, err)
 	}
-	s.client = client
 
 	sess, err := client.NewSession()
 	if err != nil {
 		client.Close()
 		return fmt.Errorf("new session: %w", err)
 	}
-	s.session = sess
 
 	modes := ssh.TerminalModes{
 		ssh.ECHO:          1,
@@ -120,7 +125,6 @@ func (s *SSHSession) Connect() error {
 		client.Close()
 		return fmt.Errorf("stdin pipe: %w", err)
 	}
-	s.stdin = stdin
 
 	if err := sess.Shell(); err != nil {
 		sess.Close()
@@ -128,7 +132,13 @@ func (s *SSHSession) Connect() error {
 		return fmt.Errorf("shell: %w", err)
 	}
 
+	s.mu.Lock()
+	s.client = client
+	s.session = sess
+	s.stdin = stdin
 	s.running = true
+	s.mu.Unlock()
+
 	logger.Info(s.cfg.Label, "connected to "+addr)
 	if s.OnStatus != nil {
 		s.OnStatus(true)
@@ -258,7 +268,16 @@ func (s *SSHSession) buildAuth() ([]ssh.AuthMethod, error) {
 	}
 
 	if len(methods) == 0 {
-		return nil, fmt.Errorf("no authentication method configured")
+		if s.PasswordPrompt == nil {
+			return nil, fmt.Errorf("no authentication method configured")
+		}
+		methods = append(methods, ssh.PasswordCallback(func() (string, error) {
+			pw := s.PasswordPrompt()
+			if pw == "" {
+				return "", fmt.Errorf("password entry cancelled")
+			}
+			return pw, nil
+		}))
 	}
 	return methods, nil
 }

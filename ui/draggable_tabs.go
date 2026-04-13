@@ -17,6 +17,7 @@ type DraggableTabItem struct {
 	Title   string
 	Icon    fyne.Resource
 	Content fyne.CanvasObject
+	OnClose func() // optional: called when the user closes the tab
 }
 
 // NewDraggableTabItem creates a tab item
@@ -86,6 +87,21 @@ func (d *DraggableTabContainer) Items() []*DraggableTabItem { return d.items }
 // SelectedIndex returns the index of the active tab
 func (d *DraggableTabContainer) SelectedIndex() int { return d.selected }
 
+// Remove closes the tab at index i and selects an adjacent tab
+func (d *DraggableTabContainer) Remove(i int) {
+	if i < 0 || i >= len(d.items) {
+		return
+	}
+	d.items = append(d.items[:i], d.items[i+1:]...)
+	if d.selected >= len(d.items) {
+		d.selected = len(d.items) - 1
+	}
+	if d.selected < 0 {
+		d.selected = 0
+	}
+	d.rebuild()
+}
+
 // ── Internal ──────────────────────────────────────────────────────────────────
 
 // rebuild recreates all tab header buttons and refreshes the content pane.
@@ -99,11 +115,17 @@ func (d *DraggableTabContainer) rebuild() {
 			item.Title,
 			item.Icon,
 			i == d.selected,
-			func() { d.Select(i) },      // onClick: select this tab
-			func(from, to int) {          // onSwap: swap two tabs
+			func() { d.Select(i) }, // onClick: select this tab
+			func(from, to int) {    // onSwap: swap two tabs
 				d.swapTabs(from, to)
 			},
-			func() int { return i },      // getIndex: current position
+			func() int { return i }, // getIndex: current position
+			func() {                 // onClose: remove this tab
+				if item.OnClose != nil {
+					item.OnClose()
+				}
+				d.Remove(i)
+			},
 		)
 		buttons[i] = btn
 	}
@@ -151,6 +173,7 @@ type dragTabButton struct {
 	getIndex func() int     // returns this button's current index in parent
 	onClick  func()         // called on tap
 	onSwap   func(int, int) // called with (thisIndex, neighbourIndex)
+	onClose  func()         // called when the × button is tapped
 	dragAccX float32        // accumulated horizontal drag distance
 }
 
@@ -164,6 +187,7 @@ func newDragTabButton(
 	onClick func(),
 	onSwap func(int, int),
 	getIndex func() int,
+	onClose func(),
 ) *dragTabButton {
 	b := &dragTabButton{
 		label:    label,
@@ -172,6 +196,7 @@ func newDragTabButton(
 		getIndex: getIndex,
 		onClick:  onClick,
 		onSwap:   onSwap,
+		onClose:  onClose,
 	}
 	b.ExtendBaseWidget(b)
 	return b
@@ -235,12 +260,11 @@ func (b *dragTabButton) CreateRenderer() fyne.WidgetRenderer {
 		bg.FillColor = theme.InputBackgroundColor()
 	}
 
-	// "⠿" Braille character as a subtle drag-handle hint on the right
-	dragHint := widget.NewLabel("⠿")
-	dragHint.TextStyle = fyne.TextStyle{Monospace: true}
+	closeBtn := widget.NewButtonWithIcon("", theme.CancelIcon(), b.onClose)
+	closeBtn.Importance = widget.LowImportance
 
 	row := container.NewHBox(ico, lbl)
-	inner := container.NewBorder(nil, indicator, nil, dragHint, row)
+	inner := container.NewBorder(nil, indicator, nil, closeBtn, row)
 	stacked := container.NewStack(bg, container.NewPadded(inner))
 
 	return widget.NewSimpleRenderer(stacked)

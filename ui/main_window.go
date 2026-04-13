@@ -35,6 +35,7 @@ func MainWindow(app fyne.App, sessions []config.Session, onSave func([]config.Se
 			return
 		}
 		item := NewDraggableTabItem("SFTP: "+sess.Label, theme.FolderIcon(), sftpTab.Container)
+		item.OnClose = func() { sftpTab.sftp.Close() }
 		targetTabs.Append(item)
 	}
 
@@ -52,8 +53,18 @@ func MainWindow(app fyne.App, sessions []config.Session, onSave func([]config.Se
 		tt.OnOpenInWindow = openSessionInWindow
 
 		item := NewDraggableTabItem(sess.Label, theme.ComputerIcon(), tt.Container)
+		item.OnClose = func() {
+			if tt.sshSession != nil {
+				tt.sshSession.Disconnect()
+			}
+		}
 		newTabs.Append(item)
 		newWin.SetContent(newTabs.Container())
+		newWin.SetOnClosed(func() {
+			if tt.sshSession != nil {
+				tt.sshSession.Disconnect()
+			}
+		})
 		newWin.Show()
 		tt.Connect()
 	}
@@ -68,6 +79,11 @@ func MainWindow(app fyne.App, sessions []config.Session, onSave func([]config.Se
 					return
 				}
 			}
+			// Stale map entry (tab was removed without OnClose firing) — clean up
+			if tt.sshSession != nil {
+				tt.sshSession.Disconnect()
+			}
+			delete(termTabs, sess.ID)
 		}
 		tt := NewTermTab(sess, win)
 		tt.OnOpenSFTP = func(s config.Session, sshSess *core.SSHSession) {
@@ -77,6 +93,12 @@ func MainWindow(app fyne.App, sessions []config.Session, onSave func([]config.Se
 		termTabs[sess.ID] = tt
 
 		item := NewDraggableTabItem(sess.Label, theme.ComputerIcon(), tt.Container)
+		item.OnClose = func() {
+			delete(termTabs, sess.ID)
+			if tt.sshSession != nil {
+				tt.sshSession.Disconnect()
+			}
+		}
 		tabs.Append(item)
 		tt.Connect()
 	}
