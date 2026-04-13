@@ -4,8 +4,11 @@ import (
 	_ "embed"
 	"fmt"
 	"mtssh/config"
+	"mtssh/core"
 	"mtssh/logger"
 	"mtssh/ui"
+	"net/url"
+	"runtime"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -52,6 +55,7 @@ func main() {
 			return config.Save(updated)
 		})
 		mainWin.Show()
+		go checkForUpdates(a, mainWin, Version)
 	}
 
 	passEntry.OnSubmitted = func(_ string) { unlock() }
@@ -65,4 +69,60 @@ func main() {
 	))
 
 	unlockWin.ShowAndRun()
+}
+
+func checkForUpdates(a fyne.App, win fyne.Window, currentVersion string) {
+	if currentVersion == "dev" {
+		return
+	}
+	latest, downloadURL, pageURL, err := core.LatestRelease()
+	if err != nil {
+		logger.Error("updater", "update check: "+err.Error())
+		return
+	}
+	if !core.IsNewer(currentVersion, latest) {
+		return
+	}
+
+	// Windows: os.Rename on a running binary fails — open the release page instead.
+	if runtime.GOOS == "windows" || downloadURL == "" {
+		msg := fmt.Sprintf("Version %s is available (current: %s).\nOpen in browser?", latest, currentVersion)
+		dialog.ShowConfirm("Update Available", msg, func(ok bool) {
+			if !ok {
+				return
+			}
+			u, parseErr := url.Parse(pageURL)
+			if parseErr == nil {
+				a.OpenURL(u)
+			}
+		}, win)
+		return
+	}
+
+	// Linux / macOS: self-update with progress bar.
+	msg := fmt.Sprintf("Version %s is available (current: %s).\nUpdate now?", latest, currentVersion)
+	dialog.ShowConfirm("Update Available", msg, func(ok bool) {
+		if !ok {
+			return
+		}
+		prog := widget.NewProgressBar()
+		status := widget.NewLabel("Downloading...")
+		dlg := dialog.NewCustom("Updating MTSSH", "Close",
+			container.NewVBox(status, prog), win)
+		dlg.Show()
+
+		go func() {
+			updateErr := core.SelfUpdate(downloadURL, func(p float64) {
+				prog.SetValue(p)
+			})
+			if updateErr != nil {
+				status.SetText("Error: " + updateErr.Error())
+				logger.Error("updater", updateErr.Error())
+				return
+			}
+			prog.SetValue(1)
+			status.SetText("Done! Please restart MTSSH.")
+			logger.Info("updater", "updated to "+latest)
+		}()
+	}, win)
 }

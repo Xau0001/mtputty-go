@@ -104,7 +104,7 @@ func (t *TermTab) connect() {
 		func(connected bool) {
 			t.setStatus(connected)
 			if !connected && t.Session.AutoConnect {
-				t.appendOutput("[mtssh] Auto-reconnect in 5s…\r\n")
+				t.appendOutput("[mtssh] Auto-reconnect in 3s…\r\n")
 				go sess.ConnectWithRetry(3)
 			}
 		},
